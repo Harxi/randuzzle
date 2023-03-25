@@ -1,6 +1,7 @@
-import os, random
+import os, random, sys
 
 screenX, screenY = os.get_terminal_size()
+command = {"linux": "clear", "win32": "cls"}[sys.platform]
 
 ### CONFIGS ###
 #### Менять значение после =
@@ -100,7 +101,7 @@ FRUIT:
 	def move(self, dir: str) -> None:
 		for dir in dir:
 			for _ in range(random.randint(1, self.player.speed)):
-				os.system("clear")
+				os.system(move)
 				if dir == self.player.controller.top: self.player.y -= 1
 				if dir == self.player.controller.bottom: self.player.y += 1
 				if dir == self.player.controller.left: self.player.x -= 1
@@ -117,4 +118,4 @@ while True:
 ВАША СКОРОСТЬ: {map.player.speed}""")
 	dir = input("Выберите сторону: ")
 	map.move(dir)
-	os.system("clear")
+	os.system(command)
