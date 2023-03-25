@@ -59,7 +59,7 @@ class Map:
 		self.player: Player = player
 		self.debug: bool = debug
 	
-	def render(self):
+	def render(self) -> None:
 		if self.debug:
 			print(f"""MAP:
   X: {self.x}
@@ -86,7 +86,7 @@ FRUIT:
 				print(self.theme.player if (y == self.player.y) and (x == self.player.x) else self.theme.fruit if (y == self.fruit.y) and (x == self.fruit.x) else self.theme.background if (y != self.player.y) and x != self.player.x else self.theme.line, end='')
 			print()
 	
-	def check(self):
+	def check(self) -> None:
 		if self.player.x < 0: self.player.x = 0
 		if self.player.x > self.x: self.player.x = self.x
 		if self.player.y < 0: self.player.y = 0
