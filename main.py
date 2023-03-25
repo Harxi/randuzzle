@@ -101,7 +101,7 @@ FRUIT:
 	def move(self, dir: str) -> None:
 		for dir in dir:
 			for _ in range(random.randint(1, self.player.speed)):
-				os.system(move)
+				os.system(command)
 				if dir == self.player.controller.top: self.player.y -= 1
 				if dir == self.player.controller.bottom: self.player.y += 1
 				if dir == self.player.controller.left: self.player.x -= 1
