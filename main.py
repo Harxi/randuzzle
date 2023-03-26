@@ -131,7 +131,7 @@ FRUIT:
 				movers[dir][0]()
 				self.check()
 				if keyboardSkins:
-					self.theme.positions = movers[dir][1]	
+					self.theme.positions = self.theme.positions | movers[dir][1]	
 				if rainbowSkins:
 					self.theme.frame()
 				self.render()
