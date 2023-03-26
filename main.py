@@ -1,25 +1,28 @@
 import os, random, sys
 
-screenX, screenY = os.get_terminal_size()
 command = {"linux": "clear", "win32": "cls"}[sys.platform]
+screenX, screenY = os.get_terminal_size()
 
 ### CONFIGS ###
 #### Менять значение после =
 #### Размеры карты (x, y) менять цифры
 #### В управление и в стиле менять символы только те которые находятся в кавычках ("")
 x, y = 30, 15 # РАЗМЕР КАРТЫ
-top = "w" # Кнопка идти вверх
-left = "a" # Кнопка идти влево
-bottom = "s" # Кнопка идти вниз
-right = "d" # Кнопка идти вправо
+top = ["w", {"line": 0, "player": 0, "background": 0, "fruit": 0}] # Кнопка идти вверх
+left = ["a", {"line": 0, "player": 0, "background": 0, "fruit": 0}] # Кнопка идти влево
+bottom = ["s", {"line": 0, "player": 0, "background": 0, "fruit": 0}] # Кнопка идти вниз
+right = ["d", {"line": 0, "player": 0, "background": 0, "fruit": 0}] # Кнопка идти вправо
+
+rainbowSkins = False # True Включить False выключить
+keyboardSkins = False # Тема привязана к клавиатуре или нет
 debug = False
 ### END ###
 
 ### STYLE ###
-background = "." # То что будет на заднем фоне
-player = "@" # Как вы отображаетесь
-line = "-" # Указатели на вас, если надо убрать установите тоже значение что и на заднем фоне, ту же самую махинацию можно проводить с другими вещами, к примеру игроком фруктом
-fruit = "+" # Фрукт
+background = " " # То что будет на заднем фоне
+player = "⊛" # Как вы отображаетесь
+line = " " # Указатели на вас, если надо убрать установите тоже значение что и на заднем фоне, ту же самую махинацию можно проводить с другими вещами, к примеру игроком фруктом
+fruit = "⋄" # Фрукт
 ### END ###
 
 ### CHECKERS ###
@@ -35,7 +38,7 @@ if (x < 0) or (y < 0):
 ### END ###
 
 class Controller:
-	def __init__(self, top: str, left: str, bottom: str, right: str):
+	def __init__(self, top: list, left: list, bottom: list, right: list):
 		self.top, self.left, self.bottom, self.right = top, left, bottom, right
 
 class Player:
@@ -47,7 +50,15 @@ class Player:
 class Theme:
 	def __init__(self, line: str, player: str, background: str, fruit: str):
 		self.line, self.player, self.background, self.fruit = line, player, background, fruit
-
+		self.positions = {"line": 0, "player": 0, "background": 0, "fruit": 0}
+	
+	def frame(self) -> None:
+		for texture in self.positions:
+			if self.positions[texture] == len(self.__getattribute__(texture))-1:
+				self.positions[texture] = 0
+				continue
+			self.positions[texture] += 1
+	
 class Fruit:
 	def __init__(self, x, y):
 		self.x, self.y = x, y
@@ -59,6 +70,8 @@ class Map:
 		self.theme: Theme = theme
 		self.player: Player = player
 		self.debug: bool = debug
+	
+	
 	
 	def render(self) -> None:
 		if self.debug:
@@ -84,8 +97,9 @@ FRUIT:
   Y: {self.fruit.y}""")
 		for y in range(self.y+1):
 			for x in range(self.x+1):
-				print(self.theme.player if (y == self.player.y) and (x == self.player.x) else self.theme.fruit if (y == self.fruit.y) and (x == self.fruit.x) else self.theme.background if (y != self.player.y) and x != self.player.x else self.theme.line, end='')
+				print(self.theme.player[self.theme.positions["player"]] if (y == self.player.y) and (x == self.player.x) else self.theme.fruit[self.theme.positions["fruit"]] if (y == self.fruit.y) and (x == self.fruit.x) else self.theme.background[self.theme.positions["background"]] if (y != self.player.y) and x != self.player.x else self.theme.line[self.theme.positions["line"]], end='')
 			print()
+		
 	
 	def check(self) -> None:
 		if self.player.x < 0: self.player.x = 0
@@ -97,25 +111,38 @@ FRUIT:
 				return
 			self.player.speed += 1
 			self.fruit.x, self.fruit.y = random.randint(0, self.x), random.randint(0, self.y)
+			
+	def moveTop(self) -> None: self.player.y -= 1
+	def moveBottom(self) -> None: self.player.y += 1
+	def moveLeft(self) -> None: self.player.x -= 1
+	def moveRight(self) -> None: self.player.x += 1
 	
 	def move(self, dir: str) -> None:
+		movers = {
+			self.player.controller.top[0]: (self.moveTop, self.player.controller.top[1]),
+			self.player.controller.bottom[0]: (self.moveBottom, self.player.controller.bottom[1]),
+			self.player.controller.left[0]: (self.moveLeft, self.player.controller.left[1]),
+			self.player.controller.right[0]: (self.moveRight, self.player.controller.right[1])
+		}
 		for dir in dir:
 			for _ in range(random.randint(1, self.player.speed)):
 				os.system(command)
-				if dir == self.player.controller.top: self.player.y -= 1
-				if dir == self.player.controller.bottom: self.player.y += 1
-				if dir == self.player.controller.left: self.player.x -= 1
-				if dir == self.player.controller.right: self.player.x += 1
+				if dir not in movers: continue
+				movers[dir][0]()
 				self.check()
+				if keyboardSkins:
+					self.theme.positions = movers[dir][1]	
+				if rainbowSkins:
+					self.theme.frame()
 				self.render()
 
 map = Map(x, y, Theme(line, player, background, fruit), Player(x//2, y//2, 1, Controller(top, left, bottom, right)), Fruit(random.randint(0, x), random.randint(0, y)), debug)
 
 while True:
 	map.render()
-	print(f"""ВВЕРХ, ВНИЗ: {map.player.controller.top}, {map.player.controller.bottom}
-ВЛЕВО, ВПРАВО: {map.player.controller.left}, {map.player.controller.right}
+	print(f"""ВВЕРХ, ВНИЗ: {map.player.controller.top[0]}, {map.player.controller.bottom[0]}
+ВЛЕВО, ВПРАВО: {map.player.controller.left[0]}, {map.player.controller.right[0]}
 ВАША СКОРОСТЬ: {map.player.speed}""")
-	dir = input("Выберите сторону: ")
+	dir = input("Перемещайтесь: ")
 	map.move(dir)
 	os.system(command)
